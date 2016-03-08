@@ -10,7 +10,6 @@ add_theme_support ( 'genesis-menus' , array (
 	'footer' => __( 'Footer Navigation Menu', 'genesis' )
 ));
 
-
 function bsg_remove_header() {
 	unregister_sidebar( 'header-right' );
 	remove_action( 'genesis_site_title', 'genesis_seo_site_title' );
@@ -20,7 +19,6 @@ function bsg_remove_header() {
 	remove_action( 'genesis_header', 'genesis_header_markup_close', 15 );
 }
 add_action('get_header', 'bsg_remove_header');
-
 
 
 add_filter('bw_add_classes', 'bsg_custom_nav_classes');
