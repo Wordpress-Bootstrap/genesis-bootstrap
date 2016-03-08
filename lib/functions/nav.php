@@ -3,29 +3,23 @@
   * Remove Header Defaults
   */
 
-unregister_sidebar( 'header-right' );
-//remove_action( 'genesis_site_title', 'genesis_seo_site_title' );
-remove_action( 'genesis_site_description', 'genesis_seo_site_description' );
-remove_action( 'genesis_header', 'genesis_header_markup_open', 5 );
-remove_action( 'genesis_header', 'genesis_do_header' );
-remove_action( 'genesis_header', 'genesis_header_markup_close', 15 );
-
-/* # NAVBAR HEADER
-add_filter( 'genesis_seo_title', 'bhww_filter_genesis_seo_site_title', 10, 2 );
-function bhww_filter_genesis_seo_site_title( $title, $inside ){
-	$child_inside = sprintf( '<a href="%s" title="%s"><img src="'. get_theme_mod('brand_logo') .'" title="%s" alt="%s"/></a>', trailingslashit( home_url() ), esc_attr( get_bloginfo( 'name' ) ), esc_attr( get_bloginfo( 'name' ) ), esc_attr( get_bloginfo( 'name' ) ) );
-	$title = str_replace( $inside, $child_inside, $title );
-	return $title;
-}
-// */
-
-
+//* Register Menus
 add_theme_support ( 'genesis-menus' , array ( 
 	'primary' => __( 'Primary Navigation Menu', 'genesis' ),
 	'secondary' => __( 'Secondary Navigation Menu', 'genesis' ),
-	// Add New Footer Menu; Keep Primary and Secondary Menus
 	'footer' => __( 'Footer Navigation Menu', 'genesis' )
 ));
+
+
+function bsg_remove_header() {
+	unregister_sidebar( 'header-right' );
+	remove_action( 'genesis_site_title', 'genesis_seo_site_title' );
+	remove_action( 'genesis_site_description', 'genesis_seo_site_description' );
+	remove_action( 'genesis_header', 'genesis_header_markup_open', 5 );
+	remove_action( 'genesis_header', 'genesis_do_header' );
+	remove_action( 'genesis_header', 'genesis_header_markup_close', 15 );
+}
+add_action('get_header', 'bsg_remove_header');
 
 
 
@@ -40,22 +34,17 @@ function bsg_custom_nav_classes($classes)
 }
 
 
-
-add_action( 'genesis_meta', 'bsgen_structural_wrap_fluid_menu' );
-function bsgen_structural_wrap_fluid_menu(){
+add_action( 'genesis_meta', 'bsg_structural_wrap_fluid_menu' );
+function bsg_structural_wrap_fluid_menu(){
   add_filter( 'genesis_structural_wrap-menu-primary', 'bsg_wrap_container_fluid', 99, 2);
   add_filter( 'genesis_structural_wrap-menu-secondary', 'bsg_wrap_container_fluid', 99, 2);
 }
 
 
-/**
-  * Bootstrap Nav Walker
-  */
-/*
+
 if ( !class_exists('wp_bootstrap_navwalker') ) {
-	require_once( plugins_url('/classes/class.wp_bootstrap_navwalker.php', __DIR__ ) );
+	include_once( plugins_url('/classes/class.wp_bootstrap_navwalker.php', __DIR__ ) );
 }
-// */
 
 
 /* # Widget Area
@@ -73,10 +62,9 @@ function sk_do_nav_widget(){
 /**
  * Bootstrap Nav Markup
  */
-add_filter('genesis_do_nav', 'genesis_child_nav', 10, 3);
-add_filter('genesis_do_subnav', 'genesis_child_nav', 10, 3);
-
-function genesis_child_nav($nav_output, $nav, $args)
+add_filter('genesis_do_nav', 'bsg_do_nav', 10, 3);
+add_filter('genesis_do_subnav', 'bsg_do_nav', 10, 3);
+function bsg_do_nav($nav_output, $nav, $args)
 {
 	$args['depth'] = 3;
 	$args['menu_class'] = 'nav navbar-nav';
@@ -126,16 +114,29 @@ EOT;
 }
 
 
-
+add_filter('bsg_navbar_brand_primary', 'bsg_navbar_brand_markup');
+//add_filter('bsg_navbar_brand_secondary', 'bsg_navbar_brand_markup');
+function bsg_navbar_brand_markup($navbar_brand) {
+    $brand_name = esc_attr( get_bloginfo( 'name' ) );
+    if ( get_theme_mod( 'brand_logo' ) ) {
+    	$brand = '<img src="'.get_theme_mod('brand_logo').'" alt="'.$brand_name.'">';
+    } else {
+    	$brand = $name;
+    }
+	$navbar_brand =  '<a class="navbar-brand" id="logo" title="'.esc_attr( get_bloginfo( 'description' ) ).'" href="'.esc_url( home_url( '/' ) ).'">'.$brand.'</a>';
+    return $navbar_brand;
+}
 
 
 /**
  * Navbar Brand Image Customizer Controls
  */ 
-add_action( 'customize_register', 'bsg_navbar_brand_logo_customize_register' );
+if ( has_filter( 'bsg_navbar_brand_primary', 'bsg_navbar_brand_markup' ) || has_filter( 'bsg_navbar_brand_secondary', 'bsg_navbar_brand_markup' )  ) {
+    add_action( 'customize_register', 'bsg_navbar_brand_logo_customize_register' );
+}
 function bsg_navbar_brand_logo_customize_register( $wp_customize ) 
 {
-	    $wp_customize->add_setting( 'brand_logo',
+	$wp_customize->add_setting( 'brand_logo',
              array(
                 'default' => '',
                 'type' => 'theme_mod',
@@ -155,30 +156,27 @@ function bsg_navbar_brand_logo_customize_register( $wp_customize )
         ) );
 }
 
-//add_filter('bsg_navbar_brand_secondary', 'bsg_navbar_brand_markup');
-//add_filter('bsg_navbar_brand_secondary', 'bsg_navbar_brand_markup');
-//add_filter('bsg_navbar_brand_primary', 'bsg_navbar_brand_markup');
-function bsg_navbar_brand_markup($navbar_brand) {
-    $brand_name = esc_attr( get_bloginfo( 'name' ) );
-    if ( get_theme_mod( 'brand_logo' ) ) {
-    	$brand = '<img src="'.get_theme_mod('brand_logo').'" alt="'.$brand_name.'">';
-    } else {
-    	$brand = $name;
-    }
-	$navbar_brand =  '<a class="navbar-brand" id="logo" title="'.esc_attr( get_bloginfo( 'description' ) ).'" href="'.esc_url( home_url( '/' ) ).'">'.$brand.'</a>';
-    return $navbar_brand;
+
+
+/* #NAVBAR HEADER
+add_filter( 'genesis_seo_title', 'bhww_filter_genesis_seo_site_title', 10, 2 );
+function bhww_filter_genesis_seo_site_title( $title, $inside ){
+	$child_inside = sprintf( '<a href="%s" title="%s"><img src="'. get_theme_mod('brand_logo') .'" title="%s" alt="%s"/></a>', trailingslashit( home_url() ), esc_attr( get_bloginfo( 'name' ) ), esc_attr( get_bloginfo( 'name' ) ), esc_attr( get_bloginfo( 'name' ) ) );
+	$title = str_replace( $inside, $child_inside, $title );
+	return $title;
 }
+// */
 
 
-add_action('wp_head', 'multilevel_dropdown_menu_css', 99);
-function multilevel_dropdown_menu_css() {
+//* Multilevel - Probably should move to enqueue
+add_action('wp_head', 'bsg_multilevel_dropdown_menu_css', 99);
+function bsg_multilevel_dropdown_menu_css() {
     ?>
 <style type="text/css">
-
 /**
  *----------------------------------------- 
- * Bootstrap Multilevel Menu 
- * Change default caret(down) to right caret (for desktop screens only)
+ * Bootstrap Multilevel 
+ * Change default caret to right caret (for desktop screens only)
  *-----------------------------------------
  */
 ul.dropdown-menu .caret {
@@ -213,10 +211,8 @@ ul.dropdown-menu ul.dropdown-menu{
 </style>
 <?php
 }
-
-
-add_action('wp_footer', 'multilevel_dropdown_menu', 999);
-function multilevel_dropdown_menu(){
+add_action('wp_footer', 'bsg_multilevel_dropdown_menu_js', 999);
+function bsg_multilevel_dropdown_menu_js(){
 ?>
 <script type="text/javascript">
 (function($) {
@@ -238,9 +234,6 @@ function multilevel_dropdown_menu(){
 </script>
 <?php
 }
-
-
-
 
 
 function gb3_navbar_nav_navbar_right($nav_output, $nav)
