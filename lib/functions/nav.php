@@ -1,26 +1,31 @@
 <?php
-
-
  /**
   * Remove Header Defaults
   */
 
-
-	unregister_sidebar( 'header-right' );
-	//remove_action( 'genesis_site_title', 'genesis_seo_site_title' );
-	remove_action( 'genesis_site_description', 'genesis_seo_site_description' );
-	remove_action( 'genesis_header', 'genesis_header_markup_open', 5 );
-	remove_action( 'genesis_header', 'genesis_do_header' );
-	remove_action( 'genesis_header', 'genesis_header_markup_close', 15 );
+unregister_sidebar( 'header-right' );
+//remove_action( 'genesis_site_title', 'genesis_seo_site_title' );
+remove_action( 'genesis_site_description', 'genesis_seo_site_description' );
+remove_action( 'genesis_header', 'genesis_header_markup_open', 5 );
+remove_action( 'genesis_header', 'genesis_do_header' );
+remove_action( 'genesis_header', 'genesis_header_markup_close', 15 );
 
 /* # NAVBAR HEADER
 add_filter( 'genesis_seo_title', 'bhww_filter_genesis_seo_site_title', 10, 2 );
 function bhww_filter_genesis_seo_site_title( $title, $inside ){
-		$child_inside = sprintf( '<a href="%s" title="%s"><img src="'. get_theme_mod('brand_logo') .'" title="%s" alt="%s"/></a>', trailingslashit( home_url() ), esc_attr( get_bloginfo( 'name' ) ), esc_attr( get_bloginfo( 'name' ) ), esc_attr( get_bloginfo( 'name' ) ) );
-		$title = str_replace( $inside, $child_inside, $title );
-		return $title;
+	$child_inside = sprintf( '<a href="%s" title="%s"><img src="'. get_theme_mod('brand_logo') .'" title="%s" alt="%s"/></a>', trailingslashit( home_url() ), esc_attr( get_bloginfo( 'name' ) ), esc_attr( get_bloginfo( 'name' ) ), esc_attr( get_bloginfo( 'name' ) ) );
+	$title = str_replace( $inside, $child_inside, $title );
+	return $title;
 }
 // */
+
+
+add_theme_support ( 'genesis-menus' , array ( 
+	'primary' => __( 'Primary Navigation Menu', 'genesis' ),
+	'secondary' => __( 'Secondary Navigation Menu', 'genesis' ),
+	// Add New Footer Menu; Keep Primary and Secondary Menus
+	'footer' => __( 'Footer Navigation Menu', 'genesis' )
+));
 
 
 
@@ -43,10 +48,6 @@ function bsgen_structural_wrap_fluid_menu(){
 }
 
 
-
-
-
-
 /**
   * Bootstrap Nav Walker
   */
@@ -55,114 +56,6 @@ if ( !class_exists('wp_bootstrap_navwalker') ) {
 	require_once( plugins_url('/classes/class.wp_bootstrap_navwalker.php', __DIR__ ) );
 }
 // */
-
-
-/**
- * Class Name: wp_bootstrap_navwalker
- * GitHub URI: https://github.com/twittem/wp-bootstrap-navwalker
- */
-//*
-class wp_bootstrap_navwalker extends Walker_Nav_Menu {
-  public function start_lvl( &$output, $depth = 0, $args = array() ) {
-    $indent = str_repeat( "\t", $depth );
-    $output .= "\n$indent<ul role=\"menu\" class=\" dropdown-menu\">\n";
-  }
-  public function start_el( &$output, $item, $depth = 0, $args = array(), $id = 0 ) {
-    $indent = ( $depth ) ? str_repeat( "\t", $depth ) : '';
-    if ( strcasecmp( $item->attr_title, 'divider' ) == 0 && $depth === 1 ) {
-      $output .= $indent . '<li role="presentation" class="divider">';
-    } else if ( strcasecmp( $item->title, 'divider') == 0 && $depth === 1 ) {
-      $output .= $indent . '<li role="presentation" class="divider">';
-    } else if ( strcasecmp( $item->attr_title, 'dropdown-header') == 0 && $depth === 1 ) {
-      $output .= $indent . '<li role="presentation" class="dropdown-header">' . esc_attr( $item->title );
-    } else if ( strcasecmp($item->attr_title, 'disabled' ) == 0 ) {
-      $output .= $indent . '<li role="presentation" class="disabled"><a href="#">' . esc_attr( $item->title ) . '</a>';
-    } else {
-      $class_names = $value = '';
-      $classes = empty( $item->classes ) ? array() : (array) $item->classes;
-      $classes[] = 'menu-item-' . $item->ID;
-      $class_names = join( ' ', apply_filters( 'nav_menu_css_class', array_filter( $classes ), $item, $args ) );
-      if ( $args->has_children )
-        $class_names .= ' dropdown';
-      if ( in_array( 'current-menu-item', $classes ) )
-        $class_names .= ' active';
-      $class_names = $class_names ? ' class="' . esc_attr( $class_names ) . '"' : '';
-      $id = apply_filters( 'nav_menu_item_id', 'menu-item-'. $item->ID, $item, $args );
-      $id = $id ? ' id="' . esc_attr( $id ) . '"' : '';
-      $output .= $indent . '<li' . $id . $value . $class_names .'>';
-      $atts = array();
-      $atts['title']  = ! empty( $item->title ) ? $item->title  : '';
-      $atts['target'] = ! empty( $item->target )  ? $item->target : '';
-      $atts['rel']    = ! empty( $item->xfn )   ? $item->xfn  : '';
-
-      if ( $args->has_children && $depth === 0 ) {
-        $atts['href']       = '#';
-        $atts['data-toggle']  = 'dropdown';
-        $atts['class']      = 'dropdown-toggle';
-        $atts['aria-haspopup']  = 'true';
-      } else {
-        $atts['href'] = ! empty( $item->url ) ? $item->url : '';
-      }
-      // do_action( 'wp_nav_menu_item_custom_fields', $item_id, $item, $depth, $args );
-      $atts = apply_filters( 'nav_menu_link_attributes', $atts, $item, $args );
-      $attributes = '';
-      foreach ( $atts as $attr => $value ) {
-        if ( ! empty( $value ) ) {
-          $value = ( 'href' === $attr ) ? esc_url( $value ) : esc_attr( $value );
-          $attributes .= ' ' . $attr . '="' . $value . '"';
-        }
-      }
-      $item_output = $args->before;
-      if ( ! empty( $item->attr_title ) ){
-        $item_output .= '<a'. $attributes .'><span class="glyphicon ' . esc_attr( $item->attr_title ) . '"></span>&nbsp;';
-      }else{
-        $item_output .= '<a'. $attributes .'>';
-      }
-      $item_output .= $args->link_before . apply_filters( 'the_title', $item->title, $item->ID ) . $args->link_after;
-      $item_output .= ($args->has_children) ? ' <span class="caret"></span></a>' : '</a>';
-      $item_output .= '</a>';
-      $item_output .= $args->after;
-      $output .= apply_filters( 'walker_nav_menu_start_el', $item_output, $item, $depth, $args );
-      
-      
-    }
-  }
-  public function display_element( $element, &$children_elements, $max_depth, $depth, $args, &$output ) {
-        if ( ! $element )
-            return;
-        $id_field = $this->db_fields['id'];
-        if ( is_object( $args[0] ) )
-           $args[0]->has_children = ! empty( $children_elements[ $element->$id_field ] );
-        parent::display_element( $element, $children_elements, $max_depth, $depth, $args, $output );
-    }
-  public static function fallback( $args ) {
-    if ( current_user_can( 'manage_options' ) ) {
-      extract( $args );
-      $fb_output = null;
-      if ( $container ) {
-        $fb_output = '<' . $container;
-        if ( $container_id )
-          $fb_output .= ' id="' . $container_id . '"';
-        if ( $container_class )
-          $fb_output .= ' class="' . $container_class . '"';
-        $fb_output .= '>';
-      }
-      $fb_output .= '<ul';
-      if ( $menu_id )
-        $fb_output .= ' id="' . $menu_id . '"';
-      if ( $menu_class )
-        $fb_output .= ' class="' . $menu_class . '"';
-      $fb_output .= '>';
-      $fb_output .= '<li><a href="' . admin_url( 'nav-menus.php' ) . '">Add a menu</a></li>';
-      $fb_output .= '</ul>';
-      if ( $container )
-        $fb_output .= '</' . $container . '>';
-      echo $fb_output;
-    }
-  }
-}
-// */
-
 
 
 /* # Widget Area
